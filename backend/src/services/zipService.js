@@ -19,7 +19,7 @@ function createZip(jobId, playlistName, files) {
         const zipPath = path.join(jobDir, `melodyfetch_${sanitizedName}.zip`);
         const output = fs.createWriteStream(zipPath);
         const archive = archiver('zip', {
-            zlib: { level: 9 } // Sets the compression level.
+            zlib: { level: 0 } // MP3s are already compressed, level 0 is much faster
         });
 
         output.on('close', function () {

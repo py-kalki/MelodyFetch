@@ -59,8 +59,8 @@ async function processJob(jobId, tracks, playlistName, io) {
 
     try {
         // Process in chunks to avoid overwhelming server/network
-        // Concurrency limit: 3
-        const CONCURRENCY = 3;
+        // Concurrency limit: 10
+        const CONCURRENCY = 10;
 
         for (let i = 0; i < tracks.length; i += CONCURRENCY) {
             const chunk = tracks.slice(i, i + CONCURRENCY);
