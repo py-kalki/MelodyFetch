@@ -15,8 +15,8 @@ RUN npm install --omit=dev
 # Copy backend source code
 COPY backend/ ./
 
-# Download the Linux version of yt-dlp and put it in the bin folder (or global)
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+# Download the Linux version of yt-dlp (nightly build for latest youtube fixes) and put it in the bin folder (or global)
+RUN curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod a+rx /usr/local/bin/yt-dlp
 
 EXPOSE 10000

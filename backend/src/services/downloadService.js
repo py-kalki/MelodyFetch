@@ -60,7 +60,7 @@ function downloadTrack(track, jobId) {
         --no-playlist \
         ${ffmpegArgs} \
         ${cookiesArgs} \
-        --extractor-args "youtube:player_client=android,web,tv" \
+        --extractor-args "youtube:player_client=ios,tv,web" \
         --geo-bypass \
         --retries 10 \
         --fragment-retries 10 \
