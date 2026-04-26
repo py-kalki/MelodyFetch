@@ -6,6 +6,7 @@
 // But to follow the plan, I'll add a helper here if we want to pre-validate matches.
 
 const { exec } = require('child_process');
+const path = require("path");
 
 function searchVideo(query) {
     return new Promise((resolve, reject) => {

@@ -23,7 +23,8 @@ export default function Home() {
 
   useEffect(() => {
     // Initialize Socket.io
-    socket = io('http://localhost:3001');
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    socket = io(backendUrl);
 
     socket.on('connect', () => {
       console.log('Connected to WebSocket');
@@ -36,7 +37,8 @@ export default function Home() {
     });
 
     socket.on('complete', (data) => {
-      setDownloadUrl(`http://localhost:3001${data.downloadUrl}`);
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      setDownloadUrl(`${backendUrl}${data.downloadUrl}`);
       setStatus('complete');
       setProgress(100);
       setStep('complete');

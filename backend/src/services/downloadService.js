@@ -2,6 +2,14 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+function sanitizeQuery(query) {
+    return query
+        .replace(/["']/g, "")   // remove quotes
+        .replace(/[()]/g, "")   // remove brackets
+        .replace(/:/g, "")      // remove colon
+        .trim();
+}
+
 // Ensure downloads directory exists
 const DOWNLOAD_DIR = path.join(__dirname, '../../downloads');
 if (!fs.existsSync(DOWNLOAD_DIR)) {
@@ -10,7 +18,7 @@ if (!fs.existsSync(DOWNLOAD_DIR)) {
 
 function downloadTrack(track, jobId) {
     return new Promise((resolve, reject) => {
-        const query = `${track.title} ${track.artist} official audio`;
+        const query = sanitizeQuery(`${track.title} ${track.artist} official audio`);
         // Sanitize filename
         const safeTitle = track.title.replace(/[^a-z0-9]/gi, '_');
         const safeArtist = track.artist.replace(/[^a-z0-9]/gi, '_');
@@ -28,7 +36,19 @@ function downloadTrack(track, jobId) {
         // Added --no-playlist to ensure we don't download a whole playlist if search hits one
         // Use local yt-dlp binary
         const ytDlpPath = path.join(__dirname, '../../bin/yt-dlp.exe');
-        const command = `"${ytDlpPath}" "ytsearch1:${query}" -x --audio-format mp3 --add-metadata --embed-thumbnail --no-playlist -o "${outputPath}"`;
+        const ffmpegPath = path.join(__dirname, '../../bin/ffmpeg.exe');
+        const command = `"${ytDlpPath}" "ytsearch1:${query}" \
+        -x \
+        --audio-format mp3 \
+        --add-metadata \
+        --embed-thumbnail \
+        --no-playlist \
+        --ffmpeg-location "${ffmpegPath}" \
+        --extractor-args "youtube:player_client=android" \
+        --geo-bypass \
+        --retries 10 \
+        --fragment-retries 10 \
+        -o "${outputPath}"`;
 
         console.log(`Starting download for: ${track.title}`);
 
