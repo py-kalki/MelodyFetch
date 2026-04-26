@@ -32,11 +32,10 @@ function downloadTrack(track, jobId) {
 
         const outputPath = path.join(jobDir, `${filename}.%(ext)s`);
 
-        // Command: Search 1 result, extract audio, convert to mp3, embed metadata
-        // Added --no-playlist to ensure we don't download a whole playlist if search hits one
-        // Use local yt-dlp binary
-        const ytDlpPath = path.join(__dirname, '../../bin/yt-dlp.exe');
-        const ffmpegPath = path.join(__dirname, '../../bin/ffmpeg.exe');
+        const isWindows = process.platform === 'win32';
+        let ytDlpPath = isWindows ? path.join(__dirname, '../../bin/yt-dlp.exe') : 'yt-dlp';
+        let ffmpegPath = isWindows ? path.join(__dirname, '../../bin/ffmpeg.exe') : 'ffmpeg';
+
         const command = `"${ytDlpPath}" "ytsearch1:${query}" \
         -x \
         --audio-format mp3 \
@@ -72,9 +71,10 @@ function downloadTrack(track, jobId) {
 
 function checkPrerequisites() {
     return new Promise((resolve, reject) => {
-        const ytDlpPath = path.join(__dirname, '../../bin/yt-dlp.exe');
+        const isWindows = process.platform === 'win32';
+        const ytDlpPath = isWindows ? path.join(__dirname, '../../bin/yt-dlp.exe') : 'yt-dlp';
 
-        if (!fs.existsSync(ytDlpPath)) {
+        if (isWindows && !fs.existsSync(ytDlpPath)) {
             return reject(new Error('yt-dlp binary not found in backend/bin'));
         }
 
@@ -83,8 +83,8 @@ function checkPrerequisites() {
         exec('ffmpeg -version', (error) => {
             if (error) {
                 // Try checking bin folder as fallback
-                const ffmpegPath = path.join(__dirname, '../../bin/ffmpeg.exe');
-                if (!fs.existsSync(ffmpegPath)) {
+                const ffmpegPath = isWindows ? path.join(__dirname, '../../bin/ffmpeg.exe') : 'ffmpeg';
+                if (isWindows && !fs.existsSync(ffmpegPath)) {
                     return reject(new Error('FFmpeg not found. Please install FFmpeg and add it to system PATH or backend/bin folder.'));
                 }
             }
