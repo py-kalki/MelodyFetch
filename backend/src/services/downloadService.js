@@ -34,7 +34,23 @@ function downloadTrack(track, jobId) {
 
         const isWindows = process.platform === 'win32';
         let ytDlpPath = isWindows ? path.join(__dirname, '../../bin/yt-dlp.exe') : 'yt-dlp';
-        let ffmpegPath = isWindows ? path.join(__dirname, '../../bin/ffmpeg.exe') : 'ffmpeg';
+        
+        let ffmpegArgs = '';
+        if (isWindows) {
+            let ffmpegPath = path.join(__dirname, '../../bin/ffmpeg.exe');
+            ffmpegArgs = `--ffmpeg-location "${ffmpegPath}"`;
+        }
+
+        let cookiesArgs = '';
+        if (process.env.YOUTUBE_COOKIES) {
+            const cookiesPath = path.join(DOWNLOAD_DIR, 'cookies.txt');
+            if (!fs.existsSync(cookiesPath)) {
+                fs.writeFileSync(cookiesPath, process.env.YOUTUBE_COOKIES.replace(/\\n/g, '\n'));
+            }
+            cookiesArgs = `--cookies "${cookiesPath}"`;
+        } else if (process.env.YOUTUBE_COOKIES_FILE) {
+            cookiesArgs = `--cookies "${process.env.YOUTUBE_COOKIES_FILE}"`;
+        }
 
         const command = `"${ytDlpPath}" "ytsearch1:${query}" \
         -x \
@@ -42,8 +58,9 @@ function downloadTrack(track, jobId) {
         --add-metadata \
         --embed-thumbnail \
         --no-playlist \
-        --ffmpeg-location "${ffmpegPath}" \
-        --extractor-args "youtube:player_client=android" \
+        ${ffmpegArgs} \
+        ${cookiesArgs} \
+        --extractor-args "youtube:player_client=android,web,tv" \
         --geo-bypass \
         --retries 10 \
         --fragment-retries 10 \
