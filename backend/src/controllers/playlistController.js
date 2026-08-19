@@ -4,6 +4,21 @@ const zipService = require('../services/zipService');
 // const { v4: uuidv4 } = require('uuid'); // Removed as we use crypto
 const crypto = require('crypto');
 
+function extractSpotifyPlaylistId(input) {
+    if (!input || typeof input !== 'string') return null;
+
+    const value = input.trim();
+    if (!value) return null;
+
+    const spotifyUriMatch = value.match(/spotify:playlist:([A-Za-z0-9]+)/i);
+    if (spotifyUriMatch) return spotifyUriMatch[1];
+
+    const urlMatch = value.match(/(?:https?:\/\/)?(?:open\.)?spotify\.com\/(?:embed\/)?playlist\/([A-Za-z0-9]+)(?:\?.*)?(?:#.*)?/i);
+    if (urlMatch) return urlMatch[1];
+
+    return null;
+}
+
 // Helper for UUID since I didn't add uuid to package.json (my bad, using crypto)
 function generateId() {
     return crypto.randomUUID();
@@ -14,12 +29,9 @@ exports.parsePlaylist = async (req, res) => {
         const { url } = req.body;
         if (!url) return res.status(400).json({ error: 'URL is required' });
 
-        // Extract ID from URL
-        // https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=...
-        const match = url.match(/playlist\/([a-zA-Z0-9]+)/);
-        if (!match) return res.status(400).json({ error: 'Invalid Spotify Playlist URL' });
+        const playlistId = extractSpotifyPlaylistId(url);
+        if (!playlistId) return res.status(400).json({ error: 'Invalid Spotify Playlist URL' });
 
-        const playlistId = match[1];
         const data = await spotifyService.getPlaylistTracks(playlistId);
 
         res.json(data);

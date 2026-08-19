@@ -18,10 +18,10 @@ if (!fs.existsSync(DOWNLOAD_DIR)) {
 
 function downloadTrack(track, jobId) {
     return new Promise((resolve, reject) => {
-        const query = sanitizeQuery(`${track.title} ${track.artist} official audio`);
+        const query = sanitizeQuery(`${track.title || 'Unknown Title'} ${track.artist || 'Unknown Artist'} official audio`);
         // Sanitize filename
-        const safeTitle = track.title.replace(/[^a-z0-9]/gi, '_');
-        const safeArtist = track.artist.replace(/[^a-z0-9]/gi, '_');
+        const safeTitle = (track.title || 'Unknown Title').replace(/[^a-z0-9]/gi, '_');
+        const safeArtist = (track.artist || 'Unknown Artist').replace(/[^a-z0-9]/gi, '_');
         const filename = `${safeTitle} - ${safeArtist}`;
 
         // Create job-specific directory
@@ -58,9 +58,9 @@ function downloadTrack(track, jobId) {
         --add-metadata \
         --embed-thumbnail \
         --no-playlist \
+        --js-runtimes node \
         ${ffmpegArgs} \
         ${cookiesArgs} \
-        --extractor-args "youtube:player_client=ios,tv,web" \
         --geo-bypass \
         --retries 10 \
         --fragment-retries 10 \

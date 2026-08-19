@@ -41,7 +41,7 @@ const TrackList = ({ tracks, onProcess, isProcessing }) => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {tracks.map((track, index) => (
-                                <tr key={track.id} className="hover:bg-white/5 transition-colors">
+                                <tr key={`${track.id || 'track'}-${index}`} className="hover:bg-white/5 transition-colors">
                                     <td className="p-4 text-gray-500">{index + 1}</td>
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">

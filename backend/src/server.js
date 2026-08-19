@@ -1,4 +1,16 @@
-require('dotenv').config();
+const path = require('path');
+const envCandidates = [
+  path.resolve(__dirname, '..', '.env'),
+  path.resolve(__dirname, '.env')
+];
+
+for (const envPath of envCandidates) {
+  const result = require('dotenv').config({ path: envPath });
+  if (result && result.parsed) {
+    break;
+  }
+}
+
 const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io');

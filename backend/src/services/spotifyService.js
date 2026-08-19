@@ -1,62 +1,30 @@
-const SpotifyWebApi = require('spotify-web-api-node');
-
-const spotifyApi = new SpotifyWebApi({
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-});
-
-let tokenExpirationTime = 0;
-
-async function ensureAccessToken() {
-    const now = Date.now();
-    if (now >= tokenExpirationTime) {
-        try {
-            const data = await spotifyApi.clientCredentialsGrant();
-            spotifyApi.setAccessToken(data.body['access_token']);
-            // Set expiration time (subtract 60s buffer)
-            tokenExpirationTime = now + (data.body['expires_in'] * 1000) - 60000;
-            console.log('Spotify access token refreshed');
-        } catch (error) {
-            console.error('Error refreshing Spotify token:', error);
-            throw new Error('Failed to authenticate with Spotify');
-        }
-    }
-}
+const fetch = require('isomorphic-unfetch');
+const { getTracks, getData } = require('spotify-url-info')(fetch);
 
 async function getPlaylistTracks(playlistId) {
-    await ensureAccessToken();
-
-    let tracks = [];
-    let offset = 0;
-    let limit = 100;
-    let keepFetching = true;
-
+    const url = `https://open.spotify.com/playlist/${playlistId}`;
+    
     try {
-        // First fetch to get playlist details (name, etc)
-        const playlistData = await spotifyApi.getPlaylist(playlistId, { fields: 'name' });
-        const playlistName = playlistData.body.name;
+        // Fetch playlist data
+        const playlistData = await getData(url);
+        const playlistName = playlistData.name || playlistData.title || 'Unknown Playlist';
 
-        while (keepFetching) {
-            const response = await spotifyApi.getPlaylistTracks(playlistId, { offset, limit });
-            const items = response.body.items;
-
-            items.forEach(item => {
-                if (item.track) {
-                    tracks.push({
-                        id: item.track.id,
-                        title: item.track.name,
-                        artist: item.track.artists.map(a => a.name).join(', '),
-                        album: item.track.album.name,
-                        cover: item.track.album.images[0]?.url,
-                        duration: item.track.duration_ms,
-                        releaseDate: item.track.album.release_date
-                    });
-                }
-            });
-
-            if (items.length < limit) keepFetching = false;
-            offset += limit;
-        }
+        // Fetch tracks
+        const trackData = await getTracks(url);
+        
+        const tracks = trackData.map(track => {
+            // Extract ID from URI (e.g. spotify:track:4LfCY65...)
+            const id = track.uri ? track.uri.split(':').pop() : '';
+            return {
+                id: id,
+                title: track.name || track.title || 'Unknown Title',
+                artist: track.artist || track.subtitle || 'Unknown Artist',
+                album: track.album || '', // Not provided by spotify-url-info for playlist tracks
+                cover: playlistData.coverArt?.sources?.[0]?.url || '', // Fallback to playlist cover if possible
+                duration: track.duration,
+                releaseDate: ''
+            };
+        });
 
         return { name: playlistName, tracks };
     } catch (error) {
